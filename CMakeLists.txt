@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.14)
 project(calib_features_manual VERSION 0.1 LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(CMAKE_BUILD_TYPE Debug)  # just for debug
+
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -84,3 +88,18 @@ set_target_properties(calib_features_manual PROPERTIES
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(calib_features_manual)
 endif()
+
+
+# undist tool
+add_executable(undistTool 
+    main_undist.cpp
+    src/utils.cpp
+)
+target_link_libraries(undistTool
+    ${YAML_CPP_LIBRARIES}
+    ${PCL_LIBRARIES}
+    ${EIGEN3_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+    ${CERES_LIBRARIES}
+    spdlog::spdlog_header_only
+)
