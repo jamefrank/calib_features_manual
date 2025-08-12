@@ -27,6 +27,7 @@ void HI_ImageBox::Init(QBoxLayout *panel)
     if(panel)
         panel->addWidget(m_widget);
     m_widget->Init(this);
+    // m_widget->raise();
 }
 
 void HI_ImageBox::SetImage(const QImage &image)

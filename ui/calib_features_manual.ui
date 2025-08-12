@@ -14,10 +14,7 @@
    <string>calib_features_manual</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1">
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout"/>
-    </item>
+   <layout class="QHBoxLayout" name="horizontalLayout" stretch="1">
     <item>
      <widget class="QVTKWidget" name="qvtkWidget"/>
     </item>

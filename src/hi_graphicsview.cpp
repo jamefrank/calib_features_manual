@@ -1,6 +1,7 @@
 #include "hi_graphicsview.h"
 
 #include <QGraphicsPixmapItem>
+#include <qnamespace.h>
 #include "include/hi_imagebox.h"
 
 HI_GraphicsView::HI_GraphicsView(QWidget *parent):
@@ -20,6 +21,10 @@ HI_GraphicsView::HI_GraphicsView(QWidget *parent):
     setTransformationAnchor(QGraphicsView::AnchorViewCenter);
 
     centerOn(0, 0);
+    setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+    setOptimizationFlags(QGraphicsView::DontSavePainterState | 
+                    QGraphicsView::DontAdjustForAntialiasing);
+    // this->setStyleSheet("background: transparent;");
 }
 
 HI_GraphicsView::~HI_GraphicsView()
@@ -46,6 +51,7 @@ void HI_GraphicsView::wheelEvent(QWheelEvent *event)
     QPoint scrollAmount = event->angleDelta();
     // 正值表示滚轮远离使用者放大负值表示朝向使用者缩小
     scrollAmount.y() > 0 ? ZoomIn() : ZoomOut();
+    event->accept(); // 标记事件已处理，阻止传递
 }
 
 void HI_GraphicsView::mouseMoveEvent(QMouseEvent *event)
@@ -55,9 +61,12 @@ void HI_GraphicsView::mouseMoveEvent(QMouseEvent *event)
         //获取
         QPointF mouseDelta = event->pos()-m_lastMousePos;
         Translate(mouseDelta);
+        // 强制立即更新视图
+        viewport()->update();
     }
     m_lastMousePos = event->pos();
-    QGraphicsView::mouseMoveEvent(event);
+    event->accept(); // 标记事件已处理，阻止传递
+    // QGraphicsView::mouseMoveEvent(event);
 }
 
 void HI_GraphicsView::mousePressEvent(QMouseEvent *event)
@@ -76,8 +85,8 @@ void HI_GraphicsView::mousePressEvent(QMouseEvent *event)
             emit m_imageBox->ImageClick(point.x(),point.y());
         }
     }
-
-    QGraphicsView::mousePressEvent(event);
+    event->accept(); // 标记事件已处理，阻止传递
+    // QGraphicsView::mousePressEvent(event);
 }
 
 void HI_GraphicsView::mouseReleaseEvent(QMouseEvent *event)
@@ -85,15 +94,22 @@ void HI_GraphicsView::mouseReleaseEvent(QMouseEvent *event)
     if (event->button() == Qt::LeftButton)
         m_isTranslate = false;
 
-    QGraphicsView::mouseReleaseEvent(event);
+    event->accept(); // 标记事件已处理，阻止传递
+    // QGraphicsView::mouseReleaseEvent(event);
 }
 
 void HI_GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton && event->type() == QEvent::MouseButtonDblClick)
         centerOn((qreal)m_imageItem->pixmap().width()/2,(qreal)m_imageItem->pixmap().height()/2);
-    QGraphicsView::mouseDoubleClickEvent(event);
+    event->accept(); // 标记事件已处理，阻止传递
+    // QGraphicsView::mouseDoubleClickEvent(event);
 }
+
+// void HI_GraphicsView::paintEvent(QPaintEvent *event) {
+//     QPainter painter(viewport());
+//     painter.fillRect(event->rect(), Qt::white); // 先清除背景
+// }
 
 void HI_GraphicsView::ZoomIn()
 {
@@ -113,8 +129,9 @@ void HI_GraphicsView::Zoom(float scaleFactor)
         return;
 
     scale(scaleFactor, scaleFactor);
-    //
-    this->setStyleSheet("background: transparent;");
+
+
+    // 强制立即更新视图
     viewport()->update();
 }
 

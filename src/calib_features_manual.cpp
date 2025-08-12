@@ -8,12 +8,16 @@
 #include <pcl/conversions.h>
 #include <pcl/point_types.h>
 #include <QPixmap>
+#include <qboxlayout.h>
 #include <qchar.h>
 #include <qglobal.h>
 #include <qimage.h>
 #include <spdlog/spdlog.h>
 #include <opencv2/opencv.hpp>
 #include <QDebug>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QtWidgets/QSpacerItem>
 
 #include <vtkRenderWindow.h>
 
@@ -24,7 +28,6 @@ calib_features_manual::calib_features_manual(QWidget *parent)
     ui->setupUi(this);
     //
     initUi();
-    initOverlay();
 }
 
 calib_features_manual::~calib_features_manual()
@@ -64,14 +67,16 @@ void calib_features_manual::pointPickCallback(const pcl::visualization::PointPic
 
 void calib_features_manual::initUi(){
     //
-    image_box_.Init(ui->verticalLayout);
-    connect(&image_box_, &HI_ImageBox::ImageClick, this, &calib_features_manual::actImageClick);
+    // image_box_.Init(ui->verticalLayout);
+    // connect(&image_box_, &HI_ImageBox::ImageClick, this, &calib_features_manual::actImageClick);
     //
     viewer_ptr_.reset(new pcl::visualization::PCLVisualizer("viewer", false));
     viewer_ptr_->addCoordinateSystem();
     ui->qvtkWidget->SetRenderWindow(viewer_ptr_->getRenderWindow());
     viewer_ptr_->setupInteractor(ui->qvtkWidget->GetInteractor(), ui->qvtkWidget->GetRenderWindow());
     ui->qvtkWidget->update();
+    auto renderer = ui->qvtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer();
+    renderer->SetViewport(0.5, 0.0, 1.0, 1.0); 
 
     // vtkRenderWindowInteractor* interactor =  ui->qvtkWidget->GetInteractor();
     // interactor->SetInteractorStyle(MyVtkInteractorStyle::New());
@@ -81,29 +86,22 @@ void calib_features_manual::initUi(){
 
     //
     cloud_xyzi_ptr_.reset(new pcl::PointCloud<pcl::PointXYZI>());
-}
-
-void calib_features_manual::initOverlay() {
-    overlayView = new OverlayGraphicsView(ui->centralwidget);
-    overlayView->setObjectName("overlayView");
-
-    // Step 2: 设置 geometry，覆盖整个 centralwidget
-    overlayView->setGeometry(ui->centralwidget->rect());
-
-    // Step 3: 监听 centralwidget 大小变化，保持 overlay 同步
-    // connect(this, &calib_features_manual::resizeEvent, [overlayView, this](QResizeEvent*) {
-    //     overlayView->setGeometry(ui->centralwidget->rect());
-    //     qDebug() << ui->centralwidget->rect();
-    // });
 
     //
-    QGraphicsLineItem *line = overlayView->scene()->addLine(
-        100, 100,  // 起点
-        2000, 2000,  // 终点
-        QPen(Qt::red, 4)
-    );
-    // line->setFlag(QGraphicsItem::ItemIsSelectable, true);
+    QHBoxLayout *horizontalLayout = new QHBoxLayout(ui->qvtkWidget);
+    QVBoxLayout *verticalLayout = new QVBoxLayout();
+    horizontalLayout->addLayout(verticalLayout);
+    QSpacerItem *horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+    horizontalLayout->addSpacerItem(horizontalSpacer);
+
+    horizontalLayout->setStretch(0, 1);
+    horizontalLayout->setStretch(1, 1);
+
+    image_box_.Init(verticalLayout);
+    connect(&image_box_, &HI_ImageBox::ImageClick, this, &calib_features_manual::actImageClick);
 }
+
+
 
 
 
@@ -126,13 +124,6 @@ void calib_features_manual::actImageClick(int x, int y) {
   spdlog::info("image click point: {},{}", x, y);
 }
 
-void calib_features_manual::resizeEvent(QResizeEvent* event) {
-    QWidget::resizeEvent(event); // 必须调用父类
 
-    if (overlayView && ui->centralwidget) {
-        overlayView->setGeometry(ui->centralwidget->rect());
-        qDebug() << ui->centralwidget->rect();
-    }
-}
 
 
